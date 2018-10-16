@@ -25,5 +25,28 @@ pipeline {
         sh "cp dist/rectangle_${env.MAJOR_VERSION}.${env.BUILD_NUMBER}.jar /var/www/html/rectangles/all/"
       }
     }
+    // Add stages to test code both on CentOS and Debian systems (using containers)
+    stage('Test on CentOS') {
+      agent {
+         docker 'fabric8/java-centos-openjdk8-jdk:1.4.0'
+      }
+      steps {
+        // Download the jar file produced by the earlier steps 
+        sh "curl $JENKINS_IP/rectangles/all/rectangle_${env.MAJOR_VERSION}.${env.BUILD_NUMBER}.jar -o rectangle_${env.MAJOR_VERSION}.${env.BUILD_NUMBER}.jar"
+        // Execute the jar file (this is the test itself)
+        sh "java -jar rectangle_${env.MAJOR_VERSION}.${env.BUILD_NUMBER}.jar 3 4"
+      }
+    }
+    stage('Test on Debian') {
+      agent {
+         docker 'openjdk:8u121-jre'
+      }
+      steps {
+        // Download the jar file produced by the earlier steps 
+        sh "curl $JENKINS_IP/rectangles/all/rectangle_${env.MAJOR_VERSION}.${env.BUILD_NUMBER}.jar -o rectangle_${env.MAJOR_VERSION}.${env.BUILD_NUMBER}.jar"
+        // Execute the jar file (this is the test itself)
+        sh "java -jar rectangle_${env.MAJOR_VERSION}.${env.BUILD_NUMBER}.jar 3 4"
+      }
+    }
   }
 }
